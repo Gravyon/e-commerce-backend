@@ -12,12 +12,13 @@ app.use(express.json());
 app.post("/product", async (req: Request, res: Response) => {
   try {
     //create new product
-    const { title, description } = req.body;
+    const { title, description, price } = req.body;
 
-    await prisma.post.create({
+    await prisma.product.create({
       data: {
         title: title,
         description: description,
+        price: price,
       },
     });
     res.status(200).json({ message: "Product created" });
@@ -30,16 +31,44 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Api running");
 });
 
-app.get("/products", (req: Request, res: Response) => {
+app.get("/products", async (req: Request, res: Response) => {
   //get all products
+  try {
+    const products = await prisma.product.findMany();
+    res.json(products);
+  } catch (error) {
+    console.error("Error fetching products", error);
+  }
 });
 
-app.get("/product/:id", (req: Request, res: Response) => {
+app.get("/product/:id", async (req: Request, res: Response) => {
   //get a specific product
+  try {
+    const id = parseInt(req.params.id, 10);
+    const product = await prisma.product.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    if (!product) res.status(404).json({ message: "Product not found" });
+  } catch (error) {
+    console.error("Error fetching product", error);
+  }
 });
 
-app.delete("/product/:id", (req: Request, res: Response) => {
+app.delete("/product/:id", async (req: Request, res: Response) => {
   //delete a product
+  try {
+    const id = parseInt(req.params.id, 10);
+    await prisma.product.delete({
+      where: {
+        id: id,
+      },
+    });
+    res.send.json({ message: "Product deleted" });
+  } catch (error) {
+    console.error("Product not found", error);
+  }
 });
 
 app.listen(port, () => {
