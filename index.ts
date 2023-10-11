@@ -6,14 +6,25 @@ const prisma = new PrismaClient();
 
 //server
 const app = express();
-const port = 8080;
+const port = 3000;
 app.use(express.json());
 
+//users
+app.get("/user", async (req: Request, res: Response) => {
+  try {
+    //get users
+    const users = prisma.user.findMany();
+    res.json({ message: users });
+  } catch (error) {
+    console.error("Error gettings users", error);
+  }
+});
+
+//products
 app.post("/product", async (req: Request, res: Response) => {
   try {
     //create new product
     const { title, description, price } = req.body;
-
     await prisma.product.create({
       data: {
         title: title,
@@ -72,5 +83,5 @@ app.delete("/product/:id", async (req: Request, res: Response) => {
 });
 
 app.listen(port, () => {
-  console.log(`Listening on port ${port}...`);
+  console.log(`Listening on http://localhost:${port}...`);
 });
