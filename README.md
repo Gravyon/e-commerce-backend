@@ -12,4 +12,20 @@ To run:
 bun run index.ts
 ```
 
+```Run docker
+docker-compose up -d
+```
+
+```Check if docker is running
+docker ps
+```
+
+```Start prisma
+bunx prisma init
+```
+
+```Generate tables with prisma, rerun when models are added or changed
+bunx prisma migrate dev --name init
+```
+
 This project was created using `bun init` in bun v1.0.0. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
