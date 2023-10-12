@@ -12,19 +12,23 @@ To run:
 bun run index.ts
 ```
 
-```Run docker
+Run docker
+```
 docker-compose up -d
 ```
 
-```Check if docker is running
+Check if docker is running
+```
 docker ps
 ```
 
-```Start prisma
+Initialize prisma
+```
 bunx prisma init
 ```
 
-```Generate tables with prisma, rerun when models are added or changed
+Generate tables with prisma, rerun when models are added or changed
+```
 bunx prisma migrate dev --name init
 ```
 
