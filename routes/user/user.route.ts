@@ -1,19 +1,47 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import { PrismaClient } from "@prisma/client";
 import { body, validationResult } from "express-validator";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { env } from "bun";
 
 //db
 const prisma = new PrismaClient();
 const router = express.Router();
 
+//env
+const JWT = process.env.JWT || "";
+
+interface User {
+  id: number;
+  email: string;
+  password: string;
+}
+
+type UserRole = "admin" | "user";
+
+//verify user token
+
+const verifyToken = (req: Request, res: Response, next: NextFunction) => {
+  const token = req.headers.authorization;
+
+  if (!token) {
+    return res.status(403).json({ message: "No token provided" });
+  }
+
+  try {
+    const user = jwt.verify(token, JWT) as User;
+    req.body = user;
+    next();
+  } catch (error) {
+    res.status(401).json({ message: "Invalid token", error });
+  }
+};
+
 //users
 router.get("/user", async (req: Request, res: Response) => {
   try {
     //get users
-    const users = prisma.user.findMany();
+    const users: User[] = await prisma.user.findMany();
     res.json({ message: users });
   } catch (error) {
     console.error("Error getting users", error);
@@ -34,7 +62,7 @@ router.post(
     const { email, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     try {
-      const user = await prisma.user.create({
+      const user: User = await prisma.user.create({
         data: {
           email: email,
           password: hashedPassword,
@@ -59,7 +87,7 @@ router.post(
     }
     const { email, password } = req.body;
     try {
-      const user = await prisma.user.findUnique({
+      const user: User | null = await prisma.user.findUnique({
         where: { email },
       });
 
@@ -73,7 +101,7 @@ router.post(
       }
 
       // Generate and sign a JWT token
-      const token = jwt.sign({ user: user }, "alg", { expiresIn: "24h" });
+      const token = jwt.sign({ user: user }, JWT, { expiresIn: "24h" });
 
       res.json({ token });
     } catch (error) {
