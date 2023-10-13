@@ -9,8 +9,6 @@ import { env } from "bun";
 const prisma = new PrismaClient();
 const router = express.Router();
 
-//env
-const JWT = env.JWT;
 //users
 router.get("/user", async (req: Request, res: Response) => {
   try {
@@ -18,7 +16,7 @@ router.get("/user", async (req: Request, res: Response) => {
     const users = prisma.user.findMany();
     res.json({ message: users });
   } catch (error) {
-    console.error("Error gettings users", error);
+    console.error("Error getting users", error);
   }
 });
 
@@ -75,9 +73,7 @@ router.post(
       }
 
       // Generate and sign a JWT token
-      const token = jwt.sign({ userId: user.id }, JWT, {
-        expiresIn: "24h", // Token expiration time
-      });
+      const token = jwt.sign({ user: user }, "alg", { expiresIn: "24h" });
 
       res.json({ token });
     } catch (error) {
@@ -85,25 +81,5 @@ router.post(
     }
   }
 );
-
-// router.post("/login", async (req: Request, res: Response) => {
-//   const { email, password } = req.body;
-//   const user = await prisma.user.findUnique({ where: { email: email } });
-
-//   if (!user) {
-//     return res.status(404).json({ message: "User not found" });
-//   }
-
-//   const passwordMatch = await bcrypt.compare(password, user.password);
-//   if (!passwordMatch) {
-//     return res.status(401).json({ message: "Invalid credentials" });
-//   }
-
-//   // User is authenticated
-//   const token = jwt.sign({ id: user.id }, "JWT", {
-//     expiresIn: "24h",
-//   });
-//   res.status(200).json({ message: "Login successful", token });
-// });
 
 export default router;
