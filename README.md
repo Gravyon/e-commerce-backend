@@ -18,13 +18,11 @@ To run:
 bun start
 ```
 
-Install prisma
+Prisma
 
 ```
 bun add prisma
 ```
-
-Prisma
 
 ```
 bunx prisma init
