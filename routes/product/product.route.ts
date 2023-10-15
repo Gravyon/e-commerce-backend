@@ -3,12 +3,16 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 const router = express.Router();
-
+interface Product {
+  title: string;
+  description: string;
+  price: number;
+}
 //products
 router.post("/product", async (req: Request, res: Response) => {
   try {
     //create new product
-    const { title, description, price } = req.body;
+    const { title, description, price }: Product = req.body;
     await prisma.product.create({
       data: {
         title: title,
@@ -47,6 +51,21 @@ router.get("/product/:id", async (req: Request, res: Response) => {
   }
 });
 
+router.put("/product/:id", async (req: Request, res: Response) => {
+  //update a product
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { title, description, price }: Product = req.body;
+    await prisma.product.update({
+      where: { id: id },
+      data: { title: title, description: description, price: price },
+    });
+    res.json({ message: `Product ${title} updated` });
+  } catch (error) {
+    console.error("Error updating product", error);
+  }
+});
+
 router.delete("/product/:id", async (req: Request, res: Response) => {
   //delete a product
   try {
@@ -56,7 +75,7 @@ router.delete("/product/:id", async (req: Request, res: Response) => {
         id: id,
       },
     });
-    res.send.json({ message: "Product deleted" });
+    res.send({ message: "Product deleted" });
   } catch (error) {
     console.error("Product not found", error);
   }
