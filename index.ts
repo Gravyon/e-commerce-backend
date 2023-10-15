@@ -11,6 +11,12 @@ const prisma = new PrismaClient();
 const app = express();
 const port = 3000;
 
+//env
+export const JWT = process.env.JWT || "";
+if (!JWT) {
+  throw new Error("JWT environment variable is not defined.");
+}
+
 //middlewares
 app.use(express.json());
 app.use(cors());

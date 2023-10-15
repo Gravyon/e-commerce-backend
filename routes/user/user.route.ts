@@ -3,38 +3,32 @@ import { PrismaClient } from "@prisma/client";
 import { body, validationResult } from "express-validator";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { JWT } from "../..";
+import { validateLoginInput } from "../../validation/userInput";
 
 //db
 const prisma = new PrismaClient();
 const router = express.Router();
 
-//env
-const JWT = process.env.JWT || "";
-
 interface User {
   id: number;
   email: string;
   password: string;
-  role : "USER" | "ADMIN"
+  role: "USER" | "ADMIN";
 }
 
-type UserRole = "admin" | "user";
-
 //verify user token
-
 const verifyToken = (req: Request, res: Response, next: NextFunction) => {
   const token = req.headers.authorization;
-
   if (!token) {
     return res.status(403).json({ message: "No token provided" });
   }
-
   try {
     const user = jwt.verify(token, JWT) as User;
     req.body = user;
     next();
   } catch (error) {
-    res.status(401).json({ message: "Invalid token", error });
+    console.error({ message: "Invalid token", error });
   }
 };
 
@@ -48,12 +42,6 @@ router.get("/user", async (req: Request, res: Response) => {
     console.error("Error getting users", error);
   }
 });
-
-// Validate user input
-const validateLoginInput = [
-  body("email").isEmail().withMessage("Invalid email address"),
-  body("password").notEmpty().withMessage("Password is required"),
-];
 
 //register
 router.post(
@@ -84,7 +72,9 @@ router.post(
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res
+        .status(400)
+        .json({ message: "Validation failed", errors: errors.array() });
     }
     const { email, password } = req.body;
     try {
