@@ -14,23 +14,9 @@ interface User {
   id: number;
   email: string;
   password: string;
+  name: string | null;
   role: "USER" | "ADMIN";
 }
-
-//verify user token
-const verifyToken = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.headers.authorization;
-  if (!token) {
-    return res.status(403).json({ message: "No token provided" });
-  }
-  try {
-    const user = jwt.verify(token, JWT) as User;
-    req.body = user;
-    next();
-  } catch (error) {
-    console.error({ message: "Invalid token", error });
-  }
-};
 
 //users
 router.get("/user", async (req: Request, res: Response) => {
@@ -43,12 +29,77 @@ router.get("/user", async (req: Request, res: Response) => {
   }
 });
 
+router.get("/user/:id", async (req: Request, res: Response) => {
+  //get a specific user
+  try {
+    const id = parseInt(req.params.id, 10);
+    const user = await prisma.user.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    if (!user) res.status(404).json({ message: "User not found" });
+  } catch (error) {
+    console.error("Error fetching user", error);
+  }
+});
+
+router.post("/user", async (req: Request, res: Response) => {
+  try {
+    //create new user
+    const { email, password, name, role }: User = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await prisma.user.create({
+      data: {
+        email: email,
+        password: hashedPassword,
+        name: name,
+        role: role,
+      },
+    });
+    res.status(200).json({ message: "User created" });
+  } catch (error) {
+    console.error("There was an error creating the user", error);
+  }
+});
+
+router.put("/user/:id", async (req: Request, res: Response) => {
+  //update a user
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { email, password, name, role }: User = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await prisma.user.update({
+      where: { id: id },
+      data: { email: email, password: hashedPassword, name: name, role: role },
+    });
+    res.json({ message: `User ${email} updated` });
+  } catch (error) {
+    console.error("Error updating user", error);
+  }
+});
+
+router.delete("/user/:id", async (req: Request, res: Response) => {
+  //delete a user
+  try {
+    const id = parseInt(req.params.id, 10);
+    await prisma.user.delete({
+      where: {
+        id: id,
+      },
+    });
+    res.send({ message: "User deleted" });
+  } catch (error) {
+    console.error("User not found", error);
+  }
+});
+
 //register
 router.post(
   "/register",
   validateLoginInput,
   async (req: Request, res: Response) => {
-    const { email, password } = req.body;
+    const { email, password }: User = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     try {
       const user: User = await prisma.user.create({
@@ -100,5 +151,20 @@ router.post(
     }
   }
 );
+
+//verify user token
+const verifyToken = (req: Request, res: Response, next: NextFunction) => {
+  const token = req.headers.authorization;
+  if (!token) {
+    return res.status(403).json({ message: "No token provided" });
+  }
+  try {
+    const user = jwt.verify(token, JWT) as User;
+    req.body = user;
+    next();
+  } catch (error) {
+    console.error({ message: "Invalid token", error });
+  }
+};
 
 export default router;
