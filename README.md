@@ -1,6 +1,7 @@
 # backend
 
 Install bun
+
 ```
 url -fsSL 'https://bun.sh/install' | bash
 ```
@@ -16,30 +17,35 @@ To run:
 ```bash
 bun start
 ```
+
 Install prisma
+
 ```
 bun add prisma
 ```
 
-Initialize prisma
+Prisma
+
 ```
 bunx prisma init
 ```
-Generate prisma
+
 ```
 bunx prisma generate
 ```
-Generate tables with prisma, rerun when models are added or changed
+
 ```
 bunx prisma migrate dev --name init
 ```
 
 Run docker
+
 ```
 docker-compose up -d
 ```
 
 Check if docker is running
+
 ```
 docker ps
 ```
